@@ -318,4 +318,76 @@ describe("deliverWebReply", () => {
       }),
     );
   });
+
+  describe("reply quoting", () => {
+    const quoteOpts = {
+      quoted: { key: { id: "msg-1" }, message: { conversation: "hi" } },
+    };
+
+    it("quotes only the first text chunk in 'first' mode", async () => {
+      const msg = makeMsg();
+      await deliverWebReply({
+        replyResult: { text: "aaa bbb" },
+        msg,
+        maxMediaBytes: 1024 * 1024,
+        textLimit: 3,
+        replyLogger,
+        skipLog: true,
+        quotedOptions: quoteOpts,
+        replyToMode: "first",
+      });
+      expect(msg.reply).toHaveBeenCalledTimes(2);
+      expect((msg.reply as ReturnType<typeof vi.fn>).mock.calls[0][1]).toEqual(quoteOpts);
+      expect((msg.reply as ReturnType<typeof vi.fn>).mock.calls[1][1]).toBeUndefined();
+    });
+
+    it("quotes every text chunk in 'all' mode", async () => {
+      const msg = makeMsg();
+      await deliverWebReply({
+        replyResult: { text: "aaa bbb" },
+        msg,
+        maxMediaBytes: 1024 * 1024,
+        textLimit: 3,
+        replyLogger,
+        skipLog: true,
+        quotedOptions: quoteOpts,
+        replyToMode: "all",
+      });
+      expect(msg.reply).toHaveBeenCalledTimes(2);
+      expect((msg.reply as ReturnType<typeof vi.fn>).mock.calls[0][1]).toEqual(quoteOpts);
+      expect((msg.reply as ReturnType<typeof vi.fn>).mock.calls[1][1]).toEqual(quoteOpts);
+    });
+
+    it("preserves quote for text fallback when media send fails", async () => {
+      const msg = makeMsg();
+      mockLoadedImageMedia();
+      mockFirstSendMediaFailure(msg, "upload failed");
+
+      await deliverWebReply({
+        replyResult: { text: "caption", mediaUrl: "http://example.com/img.jpg" },
+        msg,
+        maxMediaBytes: 1024 * 1024,
+        textLimit: 200,
+        replyLogger,
+        skipLog: true,
+        quotedOptions: quoteOpts,
+      });
+      expect(msg.reply).toHaveBeenCalled();
+      expect((msg.reply as ReturnType<typeof vi.fn>).mock.calls[0][1]).toEqual(quoteOpts);
+    });
+
+    it("does not quote when quotedOptions is absent", async () => {
+      const msg = makeMsg();
+      await deliverWebReply({
+        replyResult: { text: "hello" },
+        msg,
+        maxMediaBytes: 1024 * 1024,
+        textLimit: 200,
+        replyLogger,
+        skipLog: true,
+      });
+      expect(msg.reply).toHaveBeenCalledTimes(1);
+      expect((msg.reply as ReturnType<typeof vi.fn>).mock.calls[0][1]).toBeUndefined();
+    });
+  });
 });

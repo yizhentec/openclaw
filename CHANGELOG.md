@@ -11,7 +11,8 @@ Docs: https://docs.openclaw.ai
 ### Changes
 
 - LINE/outbound media: add LINE image, video, and audio outbound sends on the LINE-specific delivery path, including explicit preview/tracking handling for videos while keeping generic media sends on the existing image-only route. (#45826) Thanks @masatohoshino.
-- WhatsApp/reactions: agents can now react with emoji on incoming WhatsApp messages, enabling more natural conversational interactions like acknowledging a photo with ❤️ instead of typing a reply. Thanks @mcaxtr.
+- WhatsApp/reactions: agents can now react with emoji on incoming WhatsApp messages via the message tool (`action: "react"`). Thanks @mcaxtr.
+- WhatsApp/reply quoting: bot auto-replies can now visually quote the triggering message (swipe-to-reply style) via `channels.whatsapp.replyToMode` (`off`/`first`/`all`), matching the existing Telegram, Discord, and Slack pattern. Thanks @mcaxtr.
 - MCP: add remote HTTP/SSE server support for `mcp.servers` URL configs, including auth headers and safer config redaction for MCP credentials. (#50396) Thanks @dhananjai1729.
 - Agents/MCP: materialize bundle MCP tools with provider-safe names (`serverName__toolName`), support optional `streamable-http` transport selection plus per-server connection timeouts, and preserve real tool results from aborted/error turns unless truncation explicitly drops them. (#49505) Thanks @ziomancer.
 - Plugins/hooks: add a `before_install` hook with structured request provenance, built-in scan status, and install-target metadata so external security scanners and policy engines can review and block skill, plugin package, plugin bundle, and single-file plugin installs. (#56050) thanks @odysseus0.

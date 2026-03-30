@@ -1,4 +1,9 @@
-import type { AnyMessageContent, proto, WAMessage } from "@whiskeysockets/baileys";
+import type {
+  AnyMessageContent,
+  MiscMessageGenerationOptions,
+  proto,
+  WAMessage,
+} from "@whiskeysockets/baileys";
 import { DisconnectReason, isJidGroup } from "@whiskeysockets/baileys";
 import { createInboundDebouncer, formatLocationText } from "openclaw/plugin-sdk/channel-inbound";
 import { recordChannelActivity } from "openclaw/plugin-sdk/channel-runtime";
@@ -157,8 +162,12 @@ export async function monitorWebInbox(options: {
     });
   };
 
-  const sendTrackedMessage = async (jid: string, content: AnyMessageContent) => {
-    const result = await sock.sendMessage(jid, content);
+  const sendTrackedMessage = async (
+    jid: string,
+    content: AnyMessageContent,
+    options?: MiscMessageGenerationOptions,
+  ) => {
+    const result = await sock.sendMessage(jid, content, options);
     rememberOutboundMessage(jid, result);
     return result;
   };
@@ -383,11 +392,14 @@ export async function monitorWebInbox(options: {
         logVerbose(`Presence update failed: ${String(err)}`);
       }
     };
-    const reply = async (text: string) => {
-      await sendTrackedMessage(chatJid, { text });
+    const reply = async (text: string, options?: MiscMessageGenerationOptions) => {
+      await sendTrackedMessage(chatJid, { text }, options);
     };
-    const sendMedia = async (payload: AnyMessageContent) => {
-      await sendTrackedMessage(chatJid, payload);
+    const sendMedia = async (
+      payload: AnyMessageContent,
+      options?: MiscMessageGenerationOptions,
+    ) => {
+      await sendTrackedMessage(chatJid, payload, options);
     };
     const timestamp = inbound.messageTimestampMs;
     const mentionedJids = extractMentionedJids(msg.message as proto.IMessage | undefined);
@@ -533,7 +545,11 @@ export async function monitorWebInbox(options: {
 
   const sendApi = createWebSendApi({
     sock: {
-      sendMessage: (jid: string, content: AnyMessageContent) => sendTrackedMessage(jid, content),
+      sendMessage: (
+        jid: string,
+        content: AnyMessageContent,
+        options?: MiscMessageGenerationOptions,
+      ) => sendTrackedMessage(jid, content, options),
       sendPresenceUpdate: (presence, jid?: string) => sock.sendPresenceUpdate(presence, jid),
     },
     defaultAccountId: options.accountId,

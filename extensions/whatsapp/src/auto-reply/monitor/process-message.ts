@@ -1,3 +1,4 @@
+import type { MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
 import { resolveIdentityNamePrefix } from "openclaw/plugin-sdk/agent-runtime";
 import {
   resolveInboundSessionEnvelopeContext,
@@ -398,6 +399,26 @@ export async function processMessage(params: {
   });
   trackBackgroundTask(params.backgroundTasks, metaTask);
 
+  // Build quoted-message options locally from WhatsApp config. We don't use
+  // the shared threading adapter (which would advertise channel-wide support)
+  // because only the auto-reply delivery path supports quoting for now.
+  const account = resolveWhatsAppAccount({ cfg: params.cfg, accountId: params.route.accountId });
+  const replyToMode = account.replyToMode ?? params.cfg.channels?.whatsapp?.replyToMode ?? "off";
+  let quotedOptions: MiscMessageGenerationOptions | undefined;
+  if (replyToMode !== "off" && params.msg.id && params.msg.chatId) {
+    quotedOptions = {
+      quoted: {
+        key: {
+          remoteJid: params.msg.chatId,
+          id: params.msg.id,
+          fromMe: params.msg.fromMe ?? false,
+          participant: params.msg.senderJid ?? undefined,
+        },
+        message: { conversation: params.msg.body || "" },
+      },
+    } as MiscMessageGenerationOptions;
+  }
+
   const { queuedFinal } = await dispatchReplyWithBufferedBlockDispatcher({
     ctx: ctxPayload,
     cfg: params.cfg,
@@ -429,6 +450,8 @@ export async function processMessage(params: {
           connectionId: params.connectionId,
           skipLog: false,
           tableMode,
+          quotedOptions,
+          replyToMode: replyToMode !== "off" ? replyToMode : undefined,
         });
         didSendReply = true;
         const shouldLog = payload.text ? true : undefined;

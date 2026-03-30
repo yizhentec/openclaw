@@ -158,6 +158,34 @@ describe("createWebSendApi", () => {
     );
   });
 
+  it("passes quoted message options to Baileys sendMessage", async () => {
+    const quotedKey = {
+      id: "quoted-1",
+      remoteJid: "1555@s.whatsapp.net",
+      fromMe: false,
+      participant: "1555@s.whatsapp.net",
+      body: "hello",
+    };
+    await api.sendMessage("+1555", "reply", undefined, undefined, {
+      quotedMessageKey: quotedKey,
+    });
+    expect(sendMessage).toHaveBeenCalledWith(
+      "1555@s.whatsapp.net",
+      { text: "reply" },
+      expect.objectContaining({
+        quoted: expect.objectContaining({
+          key: expect.objectContaining({ id: "quoted-1" }),
+          message: { conversation: "hello" },
+        }),
+      }),
+    );
+  });
+
+  it("omits quoted options when quotedMessageKey is not provided", async () => {
+    await api.sendMessage("+1555", "plain");
+    expect(sendMessage).toHaveBeenCalledWith("1555@s.whatsapp.net", { text: "plain" }, undefined);
+  });
+
   it("sends composing presence updates to the recipient JID", async () => {
     await api.sendComposingTo("+1555");
     expect(sendPresenceUpdate).toHaveBeenCalledWith("composing", "1555@s.whatsapp.net");

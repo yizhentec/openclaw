@@ -9,6 +9,7 @@ import {
   resolveUserPath,
   type OpenClawConfig,
 } from "openclaw/plugin-sdk/account-core";
+import type { ReplyToMode } from "openclaw/plugin-sdk/config-runtime";
 import { resolveOAuthDir } from "openclaw/plugin-sdk/state-paths";
 import { hasWebCredsSync } from "./creds-files.js";
 import type { DmPolicy, GroupPolicy, WhatsAppAccountConfig } from "./runtime-api.js";
@@ -34,6 +35,7 @@ export type ResolvedWhatsAppAccount = {
   ackReaction?: WhatsAppAccountConfig["ackReaction"];
   groups?: WhatsAppAccountConfig["groups"];
   debounceMs?: number;
+  replyToMode?: ReplyToMode;
 };
 
 export const DEFAULT_WHATSAPP_MEDIA_MAX_MB = 50;
@@ -156,6 +158,7 @@ export function resolveWhatsAppAccount(params: {
     ackReaction: merged.ackReaction,
     groups: merged.groups,
     debounceMs: merged.debounceMs,
+    replyToMode: merged.replyToMode,
   };
 }
 

@@ -1,4 +1,4 @@
-import type { AnyMessageContent } from "@whiskeysockets/baileys";
+import type { AnyMessageContent, MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
 import type { NormalizedLocation } from "openclaw/plugin-sdk/channel-inbound";
 import type { WhatsAppIdentity, WhatsAppReplyContext, WhatsAppSelfIdentity } from "../identity.js";
 
@@ -40,8 +40,8 @@ export type WebInboundMessage = {
   fromMe?: boolean;
   location?: NormalizedLocation;
   sendComposing: () => Promise<void>;
-  reply: (text: string) => Promise<void>;
-  sendMedia: (payload: AnyMessageContent) => Promise<void>;
+  reply: (text: string, options?: MiscMessageGenerationOptions) => Promise<void>;
+  sendMedia: (payload: AnyMessageContent, options?: MiscMessageGenerationOptions) => Promise<void>;
   mediaPath?: string;
   mediaType?: string;
   mediaFileName?: string;
